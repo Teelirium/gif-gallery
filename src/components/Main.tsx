@@ -11,7 +11,15 @@ import { useAtom } from "jotai/react";
 import { foldersAtom } from "@/utils/atoms";
 
 async function loadGifs(folders: string[]) {
-  const promises = folders.map((f) => fs.promises.readdir(f));
+  const promises = folders.map(
+    (folder) =>
+      new Promise<string[]>((resolve, reject) => {
+        fs.promises.readdir(folder).then((files) => {
+          const fullPaths = files.map((file) => path.join(folder, file));
+          resolve(fullPaths);
+        });
+      })
+  );
   const allFiles = (await Promise.all(promises))
     .flat()
     .filter((file) => file.endsWith(".gif"));
@@ -42,7 +50,6 @@ const Main: React.FC = () => {
             ev.preventDefault();
             const [folder] = (await ipcRenderer.invoke("select-folder"))
               .filePaths;
-
             console.log("Selected", folder);
             setFolders((prev) => prev.add(folder));
           }}
@@ -55,24 +62,25 @@ const Main: React.FC = () => {
         {gifsQuery.isError && "No images found :("}
         {gifsQuery.isLoading && "1 sec..."}
         {gifsQuery.isSuccess &&
-          gifsQuery.data.map((f) => (
+          gifsQuery.data.map((filePath) => (
             <div>
               <div
-                key={f}
+                key={filePath}
                 className="bg-indigo-500 flex h-40 border-indigo-300 border-4 rounded-md justify-center align-middle object-fill"
                 draggable
                 onDragStart={(ev) => {
                   ev.preventDefault();
-                  ipcRenderer.send("ondragstart", path.join(foldersArr[0], f));
+                  ipcRenderer.send("ondragstart", filePath);
                 }}
                 onClick={(ev) => {
-                  ripGif(
-                    "https://tenor.com/view/avatar-see-you-later-thanks-gif-18769401"
-                  ).then(console.log);
+                  ev.preventDefault();
+                  // ripGif(
+                  //   "https://tenor.com/view/avatar-see-you-later-thanks-gif-18769401"
+                  // ).then(console.log);
                 }}
               >
                 <img
-                  src={"file://" + path.join(foldersArr[0], f)}
+                  src={"file://" + filePath}
                   className="object-cover w-full h-full active:object-contain"
                 />
               </div>
