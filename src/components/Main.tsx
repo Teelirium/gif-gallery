@@ -10,19 +10,19 @@ import { ripGif } from "@/utils/tenorRipper";
 import { useAtom } from "jotai/react";
 import { foldersAtom } from "@/utils/atoms";
 
-async function loadGifs(folder: string) {
-  console.log(path.resolve(folder));
-  const dir = await fs.promises.readdir(folder);
-  return dir.filter((file) => file.endsWith(".gif"));
+async function loadGifs(folders: string[]) {
+  const promises = folders.map((f) => fs.promises.readdir(f));
+  const allFiles = (await Promise.all(promises))
+    .flat()
+    .filter((file) => file.endsWith(".gif"));
+  return allFiles;
 }
 
 const Main: React.FC = () => {
   const [folders, setFolders] = useAtom(foldersAtom);
   const foldersArr = useMemo(() => Array.from(folders), [folders.size]);
 
-  const gifsQuery = useQuery(["gifs", foldersArr], () =>
-    loadGifs(foldersArr[0])
-  );
+  const gifsQuery = useQuery(["gifs", foldersArr], () => loadGifs(foldersArr));
   const foldersQuery = useQuery("folders", () => {
     ipcRenderer.invoke("load-folders").then(setFolders);
   });
@@ -46,7 +46,7 @@ const Main: React.FC = () => {
             console.log("Selected", folder);
             setFolders((prev) => prev.add(folder));
           }}
-          className="absolute top-5 right-5 rounded-md border border-indigo-100 border-3 p-2 bg-slate-700"
+          className="absolute top-5 right-5 rounded-md border-indigo-200 border-2 p-2 bg-slate-600"
         >
           + Add Folder
         </button>
@@ -56,24 +56,26 @@ const Main: React.FC = () => {
         {gifsQuery.isLoading && "1 sec..."}
         {gifsQuery.isSuccess &&
           gifsQuery.data.map((f) => (
-            <div
-              key={f}
-              className="flex h-40 border-indigo-300 border-4 rounded-md justify-center align-middle object-fill"
-              draggable
-              onDragStart={(ev) => {
-                ev.preventDefault();
-                ipcRenderer.send("ondragstart", path.join(foldersArr[0], f));
-              }}
-              onClick={(ev) => {
-                ripGif(
-                  "https://tenor.com/view/avatar-see-you-later-thanks-gif-18769401"
-                ).then(console.log);
-              }}
-            >
-              <img
-                src={"file://" + path.join(foldersArr[0], f)}
-                className='object-cover w-full h-full'
-              />
+            <div>
+              <div
+                key={f}
+                className="bg-indigo-500 flex h-40 border-indigo-300 border-4 rounded-md justify-center align-middle object-fill"
+                draggable
+                onDragStart={(ev) => {
+                  ev.preventDefault();
+                  ipcRenderer.send("ondragstart", path.join(foldersArr[0], f));
+                }}
+                onClick={(ev) => {
+                  ripGif(
+                    "https://tenor.com/view/avatar-see-you-later-thanks-gif-18769401"
+                  ).then(console.log);
+                }}
+              >
+                <img
+                  src={"file://" + path.join(foldersArr[0], f)}
+                  className="object-cover w-full h-full active:object-contain"
+                />
+              </div>
             </div>
           ))}
       </main>
