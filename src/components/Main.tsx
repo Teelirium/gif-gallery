@@ -42,25 +42,35 @@ const Main: React.FC = () => {
 
   return (
     <div className="bg-indigo-900 text-indigo-100 p-6 w-screen h-fit min-h-screen">
+      <button
+        onClick={async (ev) => {
+          ev.preventDefault();
+          const [folder] = (await ipcRenderer.invoke("select-folder"))
+            .filePaths;
+          console.log("Selected", folder);
+          setFolders((prev) => prev.add(folder));
+        }}
+        className="absolute top-5 right-5 rounded-md border-indigo-200 border-2 p-2 bg-slate-600 active:bg-indigo-700"
+      >
+        + Add Folder
+      </button>
       <h1>View all the gifs here ok</h1>
       <header className="p-4">
-        <h2>{foldersArr.join(" ")}</h2>
-        <button
-          onClick={async (ev) => {
-            ev.preventDefault();
-            const [folder] = (await ipcRenderer.invoke("select-folder"))
-              .filePaths;
-            console.log("Selected", folder);
-            setFolders((prev) => prev.add(folder));
-          }}
-          className="absolute top-5 right-5 rounded-md border-indigo-200 border-2 p-2 bg-slate-600"
-        >
-          + Add Folder
-        </button>
+        <div className="grid grid-cols-5 mb-3">
+          <h2 className="col-span-full">Loaded folders:</h2>
+          {foldersArr.map((fold) => (
+            <span className="text-center">{fold}</span>
+          ))}
+        </div>
+        <input
+          type={"text"}
+          placeholder="this search bar doesn't work yet"
+          className="w-full p-1.5 rounded-md text-slate-800"
+        />
       </header>
       <main className="grid grid-cols-3 gap-12 p-4">
         {gifsQuery.isError && "No images found :("}
-        {gifsQuery.isLoading && "1 sec..."}
+        {gifsQuery.isLoading && "Holup, 1 sec..."}
         {gifsQuery.isSuccess &&
           gifsQuery.data.map((filePath) => (
             <div>
