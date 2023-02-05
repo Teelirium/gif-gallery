@@ -9,6 +9,5 @@ export async function ripGif(url: string) {
         .querySelector('meta[property="og:image"]')
         ?.getAttribute("content");
     });
-  console.log(gifUrl);
   return gifUrl;
 }
