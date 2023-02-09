@@ -1,18 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
-import react from "/react.svg";
-import vite from "/vite.svg";
-import styles from "./Main.module.scss";
-import * as fs from "fs";
-import { useQuery } from "react-query";
-import * as path from "path";
-import { clipboard, ipcRenderer, nativeImage } from "electron";
-import { ripGif } from "@/utils/tenorRipper";
-import { useAtom } from "jotai/react";
 import { foldersAtom } from "@/utils/atoms";
-import { useLocation, useNavigate, useParams } from "react-router";
+import classNames from "classnames";
+import { ipcRenderer } from "electron";
+import * as fs from "fs";
+import { useAtom } from "jotai/react";
+import * as path from "path";
+import { useEffect, useMemo } from "react";
+import { useQuery } from "react-query";
+import { useLocation, useNavigate } from "react-router";
 import { useSearchParams } from "react-router-dom";
 import { z } from "zod";
-import classNames from "classnames";
 
 async function loadGifs(folders: string[]) {
   if (folders.length === 0) {
@@ -57,6 +53,13 @@ const Main: React.FC = () => {
     enabled: foldersArr.length > 0,
   });
 
+  const filteredGifs = useMemo(() => {
+    if (tab === null) {
+      return gifsQuery.data;
+    }
+    return gifsQuery.data?.filter((f) => f.includes(foldersArr[tab]));
+  }, [tab]);
+
   useEffect(() => {
     ipcRenderer.send("save-folders", Array.from(folders));
     console.log("Saved folders:", folders);
@@ -70,9 +73,9 @@ const Main: React.FC = () => {
       <h1>View all the gifs here ok</h1>
       <header className="grid grid-cols-5 gap-3 p-4">
         <button
-          className={classNames("text-center rounded-md", {
-            "bg-indigo-400 text-white": tab === null,
-            "bg-slate-600": tab !== null,
+          className={classNames("text-center rounded-md", "transition-colors", {
+            "bg-indigo-500 hover:bg-indigo-400 text-white": tab === null,
+            "bg-slate-600 hover:bg-slate-500": tab !== null,
           })}
           onClick={() => {
             nav({ pathname: "/" }, { replace: true });
@@ -83,10 +86,14 @@ const Main: React.FC = () => {
         {foldersArr.map((fold, i) => (
           <button
             key={fold}
-            className={classNames("text-center rounded-md", {
-              "bg-indigo-400 text-white": tab === i,
-              "bg-slate-600": tab !== i,
-            })}
+            className={classNames(
+              "text-center rounded-md",
+              "transition-colors",
+              {
+                "bg-indigo-500 hover:bg-indigo-400 text-white": tab === i,
+                "bg-slate-600 hover:bg-slate-500": tab !== i,
+              }
+            )}
             title={fold}
             onClick={() => {
               nav({ pathname: "/", search: `?tab=${i}` }, { replace: true });
@@ -99,7 +106,7 @@ const Main: React.FC = () => {
           className={classNames(
             "text-center rounded-md border border-dashed",
             "hover:bg-slate-100",
-            "hover:bg-opacity-50 active:bg-opacity-75",
+            "hover:bg-opacity-25 active:bg-opacity-50",
             "transition-colors"
           )}
           onClick={async (ev) => {
@@ -125,12 +132,17 @@ const Main: React.FC = () => {
         {gifsQuery.isError && "No images found :("}
         {gifsQuery.isLoading && "Holup, 1 sec..."}
         {gifsQuery.isSuccess &&
-          gifsQuery.data.map((filePath) => (
+          filteredGifs?.map((filePath) => (
             <div key={filePath}>
               <div
-                className="flex h-40 hover:border-indigo-300 border-2 border-transparent rounded-md justify-center align-middle object-fill"
+                className={classNames(
+                  "flex h-40",
+                  "border-2 hover:border-indigo-300 border-transparent",
+                  "transition-colors rounded-md justify-center align-middle"
+                )}
+                role={"button"}
+                title={filePath}
                 draggable
-                role={'button'}
                 onDragStart={(ev) => {
                   ev.preventDefault();
                   ipcRenderer.send("ondragstart", filePath);
@@ -144,7 +156,7 @@ const Main: React.FC = () => {
               >
                 <img
                   src={"file://" + filePath}
-                  className="object-cover rounded-md w-full h-full active:object-contain"
+                  className="w-full h-full rounded-md object-cover active:object-contain"
                 />
               </div>
             </div>
