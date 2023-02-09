@@ -9,6 +9,10 @@ import { clipboard, ipcRenderer, nativeImage } from "electron";
 import { ripGif } from "@/utils/tenorRipper";
 import { useAtom } from "jotai/react";
 import { foldersAtom } from "@/utils/atoms";
+import { useLocation, useNavigate, useParams } from "react-router";
+import { useSearchParams } from "react-router-dom";
+import { z } from "zod";
+import classNames from "classnames";
 
 async function loadGifs(folders: string[]) {
   if (folders.length === 0) {
@@ -29,9 +33,22 @@ async function loadGifs(folders: string[]) {
   return allFiles;
 }
 
+const tabSchema = z
+  .preprocess((s) => parseInt(s as string), z.number().min(0))
+  .catch(null);
+
 const Main: React.FC = () => {
+  const nav = useNavigate();
+  const loc = useLocation();
+  const [params] = useSearchParams();
+
   const [folders, setFolders] = useAtom(foldersAtom);
+
   const foldersArr = useMemo(() => Array.from(folders), [folders.size]);
+  const tab = useMemo(
+    () => tabSchema.parse(params.get("tab")),
+    [params.get("tab")]
+  );
 
   const foldersQuery = useQuery("folders", () => {
     ipcRenderer.invoke("load-folders").then(setFolders);
@@ -47,37 +64,63 @@ const Main: React.FC = () => {
 
   return (
     <div className="bg-indigo-900 text-indigo-100 p-6 w-screen h-fit min-h-screen">
-      <button
-        onClick={async (ev) => {
-          ev.preventDefault();
-          const [folder] = (await ipcRenderer.invoke("select-folder"))
-            .filePaths;
-          console.log("Selected", folder);
-          if (!!folder) {
-            setFolders(folders.add(folder));
-          }
-        }}
-        className="absolute top-5 right-5 rounded-md border-indigo-200 border-2 p-2 bg-slate-600 active:bg-indigo-700"
-      >
-        + Add Folder
+      <button className="absolute top-5 right-5 rounded-md border-indigo-200 border p-2 bg-slate-600 active:bg-indigo-700">
+        + Add Link
       </button>
       <h1>View all the gifs here ok</h1>
-      <header className="p-4">
-        <div className="grid grid-cols-5 mb-3">
-          <h2 className="col-span-full">Loaded folders:</h2>
-          {foldersArr.map((fold) => (
-            <span key={fold} className="text-center">
-              {fold}
-            </span>
-          ))}
-        </div>
-        <input
-          type={"text"}
-          placeholder="this search bar doesn't work yet"
-          className="w-full p-1.5 rounded-md text-slate-800"
-        />
+      <header className="grid grid-cols-5 gap-3 p-4">
+        <button
+          className={classNames("text-center rounded-md", {
+            "bg-indigo-400 text-white": tab === null,
+            "bg-slate-600": tab !== null,
+          })}
+          onClick={() => {
+            nav({ pathname: "/" }, { replace: true });
+          }}
+        >
+          All
+        </button>
+        {foldersArr.map((fold, i) => (
+          <button
+            key={fold}
+            className={classNames("text-center rounded-md", {
+              "bg-indigo-400 text-white": tab === i,
+              "bg-slate-600": tab !== i,
+            })}
+            title={fold}
+            onClick={() => {
+              nav({ pathname: "/", search: `?tab=${i}` }, { replace: true });
+            }}
+          >
+            {path.basename(fold)}
+          </button>
+        ))}
+        <button
+          className={classNames(
+            "text-center rounded-md border border-dashed",
+            "hover:bg-slate-100",
+            "hover:bg-opacity-50 active:bg-opacity-75",
+            "transition-colors"
+          )}
+          onClick={async (ev) => {
+            ev.preventDefault();
+            const [folder] = (await ipcRenderer.invoke("select-folder"))
+              .filePaths;
+            console.log("Selected", folder);
+            if (!!folder) {
+              setFolders(folders.add(folder));
+            }
+          }}
+        >
+          +
+        </button>
       </header>
-      <main className="grid grid-cols-3 gap-12 p-4">
+      <input
+        type={"text"}
+        placeholder="this search bar doesn't work yet"
+        className="w-full p-1.5 rounded-md text-slate-800"
+      />
+      <main className="grid grid-cols-3 gap-6 p-4 h-96 overflow-y-scroll">
         {foldersArr.length === 0 && "No folders provided :("}
         {gifsQuery.isError && "No images found :("}
         {gifsQuery.isLoading && "Holup, 1 sec..."}
@@ -85,8 +128,9 @@ const Main: React.FC = () => {
           gifsQuery.data.map((filePath) => (
             <div key={filePath}>
               <div
-                className="bg-indigo-500 flex h-40 border-indigo-300 border-4 rounded-md justify-center align-middle object-fill"
+                className="flex h-40 hover:border-indigo-300 border-2 border-transparent rounded-md justify-center align-middle object-fill"
                 draggable
+                role={'button'}
                 onDragStart={(ev) => {
                   ev.preventDefault();
                   ipcRenderer.send("ondragstart", filePath);
@@ -100,7 +144,7 @@ const Main: React.FC = () => {
               >
                 <img
                   src={"file://" + filePath}
-                  className="object-cover w-full h-full active:object-contain"
+                  className="object-cover rounded-md w-full h-full active:object-contain"
                 />
               </div>
             </div>
