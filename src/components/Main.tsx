@@ -5,15 +5,12 @@ import * as fs from "fs";
 import { useAtom } from "jotai/react";
 import * as path from "path";
 import { useEffect, useMemo } from "react";
-import { useQuery } from "react-query";
+import { useQuery, useQueryClient } from "react-query";
 import { useLocation, useNavigate } from "react-router";
 import { useSearchParams } from "react-router-dom";
 import { z } from "zod";
 
 async function loadGifs(folders: string[]) {
-  if (folders.length === 0) {
-    throw new Error("No folders provided");
-  }
   const promises = folders.map(
     (folder) =>
       new Promise<string[]>((resolve, reject) => {
@@ -37,28 +34,36 @@ const Main: React.FC = () => {
   const nav = useNavigate();
   const loc = useLocation();
   const [params] = useSearchParams();
+  const qClient = useQueryClient();
 
   const [folders, setFolders] = useAtom(foldersAtom);
 
   const foldersArr = useMemo(() => Array.from(folders), [folders.size]);
-  const tab = useMemo(
-    () => tabSchema.parse(params.get("tab")),
-    [params.get("tab")]
-  );
+  const tab = useMemo(() => {
+    const tab = tabSchema.parse(params.get("tab"));
+    console.log("Tab", tab, params.get("tab"));
+    return tab;
+  }, [params.get("tab")]);
 
-  const foldersQuery = useQuery("folders", () => {
-    ipcRenderer.invoke("load-folders").then(setFolders);
+  const foldersQuery = useQuery(["folders", folders.size], async () => {
+    return ipcRenderer.invoke("load-folders").then(setFolders);
   });
-  const gifsQuery = useQuery(["gifs", foldersArr], () => loadGifs(foldersArr), {
-    enabled: foldersArr.length > 0,
-  });
+  const gifsQuery = useQuery(
+    ["gifs", foldersArr],
+    async () => {
+      return loadGifs(foldersArr);
+    },
+    {
+      enabled: foldersArr.length > 0,
+    }
+  );
 
   const filteredGifs = useMemo(() => {
     if (tab === null) {
       return gifsQuery.data;
     }
     return gifsQuery.data?.filter((f) => f.includes(foldersArr[tab]));
-  }, [tab]);
+  }, [tab, gifsQuery.data]);
 
   useEffect(() => {
     ipcRenderer.send("save-folders", Array.from(folders));
@@ -67,7 +72,7 @@ const Main: React.FC = () => {
 
   return (
     <div className="bg-indigo-900 text-indigo-100 p-6 w-screen h-fit min-h-screen">
-      <button className="absolute top-5 right-5 rounded-md border-indigo-200 border p-2 bg-slate-600 active:bg-indigo-700">
+      <button className="absolute bottom-5 right-5 rounded-md border-indigo-200 border p-2 bg-slate-600 active:bg-slate-500">
         + Add Link
       </button>
       <h1>View all the gifs here ok</h1>
@@ -128,7 +133,7 @@ const Main: React.FC = () => {
         className="w-full p-1.5 rounded-md text-slate-800"
       />
       <main className="grid grid-cols-3 gap-6 p-4 h-96 overflow-y-scroll">
-        {foldersArr.length === 0 && "No folders provided :("}
+        {foldersQuery.isError && "No folders provided :("}
         {gifsQuery.isError && "No images found :("}
         {gifsQuery.isLoading && "Holup, 1 sec..."}
         {gifsQuery.isSuccess &&

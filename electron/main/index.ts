@@ -63,6 +63,7 @@ async function createWindow() {
     titleBarStyle: "hidden",
     icon: appIconPath,
     webPreferences: {
+      devTools: process.env.NODE_ENV === "development",
       preload,
       webSecurity: false,
       allowRunningInsecureContent: false,
@@ -88,10 +89,6 @@ async function createWindow() {
     if (url.startsWith("https:")) shell.openExternal(url);
     return { action: "deny" };
   });
-
-  if (process.env.NODE_ENV === "development") {
-    win.webContents.openDevTools({ mode: "detach" });
-  }
 }
 
 function showWindow() {
@@ -185,7 +182,10 @@ ipcMain.on("ondragstart", (ev, fileName) => {
 
 ipcMain.handle("load-folders", async (ev) => {
   const folders = store.get("folders");
-  return Array.isArray(folders) ? new Set(folders) : new Set();
+  if (Array.isArray(folders) && folders.length > 0) {
+    return new Set(folders);
+  }
+  throw new Error("No folders provided");
 });
 
 ipcMain.on("save-folders", (ev, folders) => {
