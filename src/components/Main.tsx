@@ -28,12 +28,12 @@ async function loadGifs(folders: string[]) {
 
 const tabSchema = z
   .preprocess((s) => parseInt(s as string), z.number().min(0))
-  .catch(null);
+  .catch(-1);
 
 const Main: React.FC = () => {
   const nav = useNavigate();
   const loc = useLocation();
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
   const qClient = useQueryClient();
 
   const [folders, setFolders] = useAtom(foldersAtom);
@@ -48,6 +48,7 @@ const Main: React.FC = () => {
   const foldersQuery = useQuery(["folders", folders.size], async () => {
     return ipcRenderer.invoke("load-folders").then(setFolders);
   });
+  
   const gifsQuery = useQuery(
     ["gifs", foldersArr],
     async () => {
@@ -59,7 +60,7 @@ const Main: React.FC = () => {
   );
 
   const filteredGifs = useMemo(() => {
-    if (tab === null) {
+    if (tab === -1) {
       return gifsQuery.data;
     }
     return gifsQuery.data?.filter((f) => f.includes(foldersArr[tab]));
@@ -79,8 +80,8 @@ const Main: React.FC = () => {
       <header className="grid grid-cols-5 gap-3 p-4">
         <button
           className={classNames("text-center rounded-md", "transition-colors", {
-            "bg-indigo-500 hover:bg-indigo-400 text-white": tab === null,
-            "bg-slate-600 hover:bg-slate-500": tab !== null,
+            "bg-indigo-500 hover:bg-indigo-400 text-white": tab === -1,
+            "bg-slate-600 hover:bg-slate-500": tab !== -1,
           })}
           onClick={() => {
             nav({ pathname: "/" }, { replace: true });
@@ -161,7 +162,7 @@ const Main: React.FC = () => {
               >
                 <img
                   src={"file://" + filePath}
-                  className="w-full h-full rounded-md object-cover active:object-contain"
+                  className="w-full h-full rounded-md object-cover hover:object-contain"
                 />
               </div>
             </div>
