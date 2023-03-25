@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "react-query";
-import { MemoryRouter, Routes, Route } from "react-router";
+import { MemoryRouter, Route, Routes } from "react-router";
 import Main from "./components/Main";
 
 const queryClient = new QueryClient();

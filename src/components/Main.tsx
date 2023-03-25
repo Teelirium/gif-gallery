@@ -48,7 +48,7 @@ const Main: React.FC = () => {
   const foldersQuery = useQuery(["folders", folders.size], async () => {
     return ipcRenderer.invoke("load-folders").then(setFolders);
   });
-  
+
   const gifsQuery = useQuery(
     ["gifs", foldersArr],
     async () => {
@@ -120,7 +120,7 @@ const Main: React.FC = () => {
             const [folder] = (await ipcRenderer.invoke("select-folder"))
               .filePaths;
             console.log("Selected", folder);
-            if (!!folder) {
+            if (folder) {
               setFolders(folders.add(folder));
             }
           }}
