@@ -9,11 +9,12 @@
 // │ └── index.html    > Electron-Renderer
 //
 process.env.DIST_ELECTRON = join(__dirname, "../..");
-process.env.DIST = join(process.env.DIST_ELECTRON, "../dist");
+process.env.DIST = join(process.env.DIST_ELECTRON, "./dist");
 process.env.PUBLIC = app.isPackaged
   ? process.env.DIST
-  : join(process.env.DIST_ELECTRON, "../public");
+  : join(process.env.DIST_ELECTRON, "./public");
 
+import * as dotenv from "dotenv";
 import {
   app,
   BrowserWindow,
@@ -24,14 +25,12 @@ import {
   protocol,
   shell,
   Tray,
-  webContents,
 } from "electron";
 import ElectronStore from "electron-store";
 import positioner from "electron-traywindow-positioner";
 import { release } from "os";
 import { join } from "path";
-import { fileURLToPath } from "url";
-import * as dotenv from "dotenv";
+import { z } from "zod";
 
 dotenv.config();
 
@@ -180,15 +179,13 @@ ipcMain.on("ondragstart", (ev, fileName) => {
   });
 });
 
+const foldersSchema = z.string().array();
 ipcMain.handle("load-folders", async (ev) => {
   const folders = store.get("folders");
-  if (Array.isArray(folders) && folders.length > 0) {
-    return new Set(folders);
-  }
-  throw new Error("No folders provided");
+  return foldersSchema.parse(folders);
 });
 
-ipcMain.on("save-folders", (ev, folders) => {
+ipcMain.on("save-folders", (ev, folders: string[]) => {
   store.set("folders", folders);
 });
 

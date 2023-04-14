@@ -1,14 +1,14 @@
 {
-  "name": "electron-vite-react",
+  "name": "gif-gallery",
   "productName": "GifGallery",
-  "private": true,
   "version": "0.0.1",
+  "main": "dist-electron/main/index.js",
+  "private": true,
   "description": "",
-  "author": "teel",
-  "main": "dist-electron/electron/main/index.js",
+  "author": "teelirium",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build && electron-builder"
+    "build": "tsc && vite build && electron-builder -c electron-builder.json5"
   },
   "engines": {
     "node": "^14.18.0 || >=16.0.0"
@@ -29,10 +29,10 @@
     "@types/react-dom": "^18.0.6",
     "@typescript-eslint/eslint-plugin": "^5.56.0",
     "@typescript-eslint/parser": "^5.56.0",
-    "@vitejs/plugin-react": "^2.1.0",
+    "@vitejs/plugin-react": "^3.1.0",
     "autoprefixer": "^10.4.12",
-    "electron": "^21.1.0",
-    "electron-builder": "^23.3.3",
+    "electron": "^24.1.1",
+    "electron-builder": "^23.6.0",
     "eslint": "^8.36.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-config-standard-with-typescript": "^34.0.1",
@@ -48,9 +48,10 @@
     "tailwindcss": "^3.2.4",
     "typescript": "^5.0.2",
     "typescript-eslint": "^0.0.1-alpha.0",
-    "vite": "^3.1.4",
-    "vite-electron-plugin": "^0.4.6",
-    "vite-plugin-electron-renderer": "^0.10.1"
+    "vite": "^4.2.1",
+    "vite-tsconfig-paths": "^4.2.0",
+    "vite-plugin-electron": "^0.11.1",
+    "vite-plugin-electron-renderer": "^0.14.0"
   },
   "debug": {
     "env": {

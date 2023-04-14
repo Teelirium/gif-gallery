@@ -1,25 +1,27 @@
-import { foldersAtom } from "@/utils/atoms";
 import classNames from "classnames";
 import { ipcRenderer } from "electron";
 import * as fs from "fs";
-import { useAtom } from "jotai/react";
 import * as path from "path";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useQuery, useQueryClient } from "react-query";
-import { useLocation, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import { useSearchParams } from "react-router-dom";
 import { z } from "zod";
 
-async function loadGifs(folders: string[]) {
-  const promises = folders.map(
-    (folder) =>
-      new Promise<string[]>((resolve, reject) => {
-        fs.promises.readdir(folder).then((files) => {
-          const fullPaths = files.map((file) => path.join(folder, file));
-          resolve(fullPaths);
-        });
+function readFolder(folder: string) {
+  return new Promise<string[]>((resolve, reject) => {
+    fs.promises
+      .readdir(folder)
+      .then((files) => {
+        const fullPaths = files.map((file) => path.join(folder, file));
+        resolve(fullPaths);
       })
-  );
+      .catch(reject);
+  });
+}
+
+async function loadGifs(folders: string[]) {
+  const promises = folders.map(readFolder);
   const allFiles = (await Promise.all(promises))
     .flat()
     .filter((file) => file.endsWith(".gif"));
@@ -30,49 +32,47 @@ const tabSchema = z
   .preprocess((s) => parseInt(s as string), z.number().min(0))
   .catch(-1);
 
-const Main: React.FC = () => {
+export default function Main() {
   const nav = useNavigate();
-  const loc = useLocation();
   const [params, setParams] = useSearchParams();
-  const qClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-  const [folders, setFolders] = useAtom(foldersAtom);
-
-  const foldersArr = useMemo(() => Array.from(folders), [folders.size]);
   const tab = useMemo(() => {
     const tab = tabSchema.parse(params.get("tab"));
-    console.log("Tab", tab, params.get("tab"));
+    console.log("Selected tab: ", tab, params.get("tab"));
     return tab;
   }, [params.get("tab")]);
 
-  const foldersQuery = useQuery(["folders", folders.size], async () => {
-    return ipcRenderer.invoke("load-folders").then(setFolders);
-  });
-
-  const gifsQuery = useQuery(
-    ["gifs", foldersArr],
+  const { data: folders, ...foldersQuery } = useQuery(
+    "folders",
     async () => {
-      return loadGifs(foldersArr);
+      const folders: string[] = await ipcRenderer.invoke("load-folders");
+      return folders;
     },
     {
-      enabled: foldersArr.length > 0,
+      cacheTime: Infinity,
     }
   );
 
-  const filteredGifs = useMemo(() => {
-    if (tab === -1) {
-      return gifsQuery.data;
+  const { data: gifs, ...gifsQuery } = useQuery(
+    ["gifs", tab],
+    async () => {
+      if (!folders) {
+        throw new Error("Folders not defined");
+      }
+      if (tab === -1) {
+        return loadGifs(folders);
+      }
+      return loadGifs([folders[tab]]);
+    },
+    {
+      enabled: foldersQuery.isSuccess,
+      cacheTime: Infinity,
     }
-    return gifsQuery.data?.filter((f) => f.includes(foldersArr[tab]));
-  }, [tab, gifsQuery.data]);
-
-  useEffect(() => {
-    ipcRenderer.send("save-folders", Array.from(folders));
-    console.log("Saved folders:", folders);
-  }, [folders.size]);
+  );
 
   return (
-    <div className="bg-indigo-900 text-indigo-100 p-6 w-screen h-fit min-h-screen">
+    <div className="bg-slate-700 text-slate-100 p-6 w-screen h-fit min-h-screen">
       <button className="absolute bottom-5 right-5 rounded-md border-indigo-200 border p-2 bg-slate-600 active:bg-slate-500">
         + Add Link
       </button>
@@ -89,7 +89,7 @@ const Main: React.FC = () => {
         >
           All
         </button>
-        {foldersArr.map((fold, i) => (
+        {folders?.map((fold, i) => (
           <button
             key={fold}
             className={classNames(
@@ -118,10 +118,12 @@ const Main: React.FC = () => {
           onClick={async (ev) => {
             ev.preventDefault();
             const [folder] = (await ipcRenderer.invoke("select-folder"))
-              .filePaths;
-            console.log("Selected", folder);
-            if (folder) {
-              setFolders(folders.add(folder));
+              .filePaths as string[];
+            console.log("Selected folder: ", folder);
+
+            if (folder && folders && !folders.includes(folder)) {
+              ipcRenderer.send("save-folders", folders.concat(folder));
+              queryClient.invalidateQueries("folders");
             }
           }}
         >
@@ -134,11 +136,10 @@ const Main: React.FC = () => {
         className="w-full p-1.5 rounded-md text-slate-800"
       />
       <main className="grid grid-cols-3 gap-6 p-4 h-96 overflow-y-scroll">
-        {foldersQuery.isError && "No folders provided :("}
         {gifsQuery.isError && "No images found :("}
         {gifsQuery.isLoading && "Holup, 1 sec..."}
         {gifsQuery.isSuccess &&
-          filteredGifs?.map((filePath) => (
+          gifs?.map((filePath) => (
             <div key={filePath}>
               <div
                 className={classNames(
@@ -171,6 +172,4 @@ const Main: React.FC = () => {
       <footer>Copyright &copy; Teelirium LOLOLOL</footer>
     </div>
   );
-};
-
-export default Main;
+}
