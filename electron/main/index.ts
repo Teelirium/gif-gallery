@@ -179,7 +179,7 @@ ipcMain.on("ondragstart", (ev, fileName) => {
   });
 });
 
-const foldersSchema = z.string().array();
+const foldersSchema = z.string().array().default([]);
 ipcMain.handle("load-folders", async (ev) => {
   const folders = store.get("folders");
   return foldersSchema.parse(folders);
