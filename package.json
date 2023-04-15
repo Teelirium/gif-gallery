@@ -1,7 +1,7 @@
 {
   "name": "gif-gallery",
   "productName": "GifGallery",
-  "version": "0.0.1",
+  "version": "0.0.1alpha",
   "main": "dist-electron/main/index.js",
   "private": true,
   "description": "",
