@@ -155,7 +155,7 @@ export default function Main() {
               <div key={filePath}>
                 <div
                   className={classNames(
-                    "flex h-40",
+                    "group relative flex h-40",
                     "border-2 border-transparent hover:border-teal-300",
                     "justify-center rounded-md align-middle transition-colors"
                   )}
@@ -177,6 +177,9 @@ export default function Main() {
                     src={"file://" + filePath}
                     className="h-full w-full rounded-md object-cover hover:object-contain"
                   />
+                  <span className="absolute -bottom-6 text-teal-300 opacity-0 transition-opacity group-hover:opacity-100">
+                    {path.basename(filePath)}
+                  </span>
                 </div>
               </div>
             ))}
