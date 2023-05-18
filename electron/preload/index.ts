@@ -1,10 +1,26 @@
 import { contextBridge, ipcRenderer } from "electron";
 
-// contextBridge.exposeInMainWorld('api', {
-//   startDrag: (fileName: string) => {
-//     ipcRenderer.send('ondragstart', fileName);
-//   }
-// })
+export const api = {
+  startDrag(fileName: string) {
+    return ipcRenderer.invoke("start-drag", fileName);
+  },
+  loadFolders() {
+    return ipcRenderer.invoke("load-folders");
+  },
+  saveFolders(folders: string[]) {
+    return ipcRenderer.invoke("save-folders", folders);
+  },
+  selectFolder() {
+    return ipcRenderer.invoke(
+      "select-folder"
+    ) as Promise<Electron.OpenDialogReturnValue>;
+  },
+  loadGifs(folders: string[]) {
+    return ipcRenderer.invoke("load-gifs", folders) as Promise<string[]>;
+  },
+};
+
+contextBridge.exposeInMainWorld("api", api);
 
 function domReady(
   condition: DocumentReadyState[] = ["complete", "interactive"]

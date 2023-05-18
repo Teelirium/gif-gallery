@@ -1,32 +1,10 @@
+import { basename } from "@/utils/basename";
 import classNames from "classnames";
-import { ipcRenderer } from "electron";
-import * as fs from "fs";
-import * as path from "path";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "react-query";
 import { useNavigate } from "react-router";
 import { useSearchParams } from "react-router-dom";
 import { z } from "zod";
-
-function readFolder(folder: string) {
-  return new Promise<string[]>((resolve, reject) => {
-    fs.promises
-      .readdir(folder)
-      .then((files) => {
-        const fullPaths = files.map((file) => path.join(folder, file));
-        resolve(fullPaths);
-      })
-      .catch(reject);
-  });
-}
-
-async function loadGifs(folders: string[]) {
-  const promises = folders.map(readFolder);
-  const allFiles = (await Promise.all(promises))
-    .flat()
-    .filter((file) => file.endsWith(".gif"));
-  return allFiles;
-}
 
 const tabSchema = z
   .preprocess((s) => parseInt(s as string), z.number().min(0))
@@ -34,7 +12,7 @@ const tabSchema = z
 
 export default function Main() {
   const nav = useNavigate();
-  const [params, setParams] = useSearchParams();
+  const [params] = useSearchParams();
   const queryClient = useQueryClient();
 
   const tab = useMemo(() => {
@@ -46,7 +24,7 @@ export default function Main() {
   const { data: folders, ...foldersQuery } = useQuery(
     "folders",
     async () => {
-      const folders: string[] = await ipcRenderer.invoke("load-folders");
+      const folders: string[] = await api.loadFolders();
       return folders;
     },
     {
@@ -61,9 +39,9 @@ export default function Main() {
         throw new Error("Folders not defined");
       }
       if (tab === -1) {
-        return loadGifs(folders);
+        return api.loadGifs(folders);
       }
-      return loadGifs([folders[tab]]);
+      return api.loadGifs([folders[tab]]);
     },
     {
       enabled: foldersQuery.isSuccess,
@@ -77,14 +55,14 @@ export default function Main() {
   }, [search]);
 
   return (
-    <div className="h-fit min-h-screen w-screen bg-slate-700 p-6 text-slate-100">
+    <div className="flex h-screen w-screen flex-col gap-2 bg-slate-700 p-4 text-slate-100">
       <button
         className="absolute bottom-5 right-5 rounded-md border border-teal-200 p-2 opacity-50"
         disabled
       >
         + Add Link
       </button>
-      <header className="grid grid-cols-5 gap-3 p-4">
+      <header className="grid flex-none grid-cols-5 gap-2 py-2">
         <button
           className={classNames("rounded-md text-center", "transition-colors", {
             "bg-teal-500 text-white hover:bg-teal-400": tab === -1,
@@ -96,9 +74,9 @@ export default function Main() {
         >
           All
         </button>
-        {folders?.map((fold, i) => (
+        {folders?.map((folder, i) => (
           <button
-            key={fold}
+            key={folder}
             className={classNames(
               "rounded-md text-center",
               "transition-colors",
@@ -107,12 +85,12 @@ export default function Main() {
                 "bg-slate-600 hover:bg-slate-500": tab !== i,
               }
             )}
-            title={fold}
+            title={folder}
             onClick={() => {
               nav({ pathname: "/", search: `?tab=${i}` }, { replace: true });
             }}
           >
-            {path.basename(fold)}
+            {basename(folder)}
           </button>
         ))}
         <button
@@ -124,12 +102,13 @@ export default function Main() {
           )}
           onClick={async (ev) => {
             ev.preventDefault();
-            const [folder] = (await ipcRenderer.invoke("select-folder"))
-              .filePaths as string[];
+            const result = await api.selectFolder();
+            const [folder] = result.filePaths;
             console.log("Selected folder: ", folder);
 
             if (folder && folders && !folders.includes(folder)) {
-              ipcRenderer.send("save-folders", folders.concat(folder));
+              // folders.push(folder);
+              api.saveFolders(folders.concat(folder));
               queryClient.invalidateQueries("folders");
             }
           }}
@@ -140,17 +119,17 @@ export default function Main() {
       <input
         type={"text"}
         placeholder="Search..."
-        className="mb-4 w-full rounded-md bg-slate-100 p-1.5 text-slate-800 outline-none outline-2 outline-offset-0 focus:outline-teal-400"
+        className="w-full rounded-md bg-slate-100 p-1.5 text-slate-800 outline-none outline-2 outline-offset-0 focus:outline-teal-400"
+        value={search}
         onChange={(ev) => setSearch(ev.target.value)}
+        onContextMenu={() => setSearch("")}
       />
-      <main className="grid h-96 grid-cols-3 gap-6 overflow-y-scroll p-4">
+      <main className="grid w-full flex-auto grid-cols-3 gap-6 overflow-x-hidden overflow-y-scroll pr-2">
         {gifsQuery.isError && "No images found :("}
         {gifsQuery.isLoading && "Holup, 1 sec..."}
         {gifsQuery.isSuccess &&
           gifs
-            ?.filter((filePath) =>
-              path.basename(filePath).includes(search.trim())
-            )
+            ?.filter((filePath) => filePath.includes(search.trim()))
             .map((filePath) => (
               <div key={filePath}>
                 <div
@@ -164,7 +143,7 @@ export default function Main() {
                   draggable
                   onDragStart={(ev) => {
                     ev.preventDefault();
-                    ipcRenderer.send("ondragstart", filePath);
+                    api.startDrag(filePath);
                   }}
                   onClick={(ev) => {
                     ev.preventDefault();
@@ -174,17 +153,20 @@ export default function Main() {
                   }}
                 >
                   <img
-                    src={"file://" + filePath}
+                    src={`file://${filePath}`}
+                    loading="lazy"
                     className="h-full w-full rounded-md object-cover hover:object-contain"
                   />
-                  <span className="absolute -bottom-6 text-teal-300 opacity-0 transition-opacity group-hover:opacity-100">
-                    {path.basename(filePath)}
+                  <span className="absolute -bottom-6 max-w-full truncate text-teal-300 opacity-0 transition-opacity group-hover:opacity-100">
+                    {basename(filePath)}
                   </span>
                 </div>
               </div>
             ))}
       </main>
-      <footer>Copyright &copy; Teelirium LOLOLOL</footer>
+      <footer className="bottom-0 flex-none">
+        Copyright &copy; Teelirium LOLOLOL
+      </footer>
     </div>
   );
 }

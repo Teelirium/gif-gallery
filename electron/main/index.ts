@@ -28,7 +28,9 @@ import {
 } from "electron";
 import ElectronStore from "electron-store";
 import positioner from "electron-traywindow-positioner";
+import * as fs from "fs";
 import { release } from "os";
+import * as path from "path";
 import { join } from "path";
 import { z } from "zod";
 
@@ -66,8 +68,8 @@ async function createWindow() {
       preload,
       webSecurity: false,
       allowRunningInsecureContent: false,
-      nodeIntegration: true,
-      contextIsolation: false,
+      nodeIntegration: false,
+      contextIsolation: true,
     },
   });
 
@@ -172,7 +174,7 @@ ipcMain.handle("open-win", (event, arg) => {
   }
 });
 
-ipcMain.on("ondragstart", (ev, fileName) => {
+ipcMain.handle("start-drag", async (ev, fileName) => {
   ev.sender.startDrag({
     file: fileName,
     icon: dragIconPath,
@@ -185,7 +187,7 @@ ipcMain.handle("load-folders", async (ev) => {
   return foldersSchema.parse(folders);
 });
 
-ipcMain.on("save-folders", (ev, folders: string[]) => {
+ipcMain.handle("save-folders", async (ev, folders: string[]) => {
   store.set("folders", folders);
 });
 
@@ -194,4 +196,24 @@ ipcMain.handle("select-folder", async (ev) => {
     properties: ["openDirectory"],
   });
   return folder;
+});
+
+function readFolder(folder: string) {
+  return new Promise<string[]>((resolve, reject) => {
+    fs.promises
+      .readdir(folder)
+      .then((files) => {
+        const fullPaths = files.map((file) => path.join(folder, file));
+        resolve(fullPaths);
+      })
+      .catch(reject);
+  });
+}
+
+ipcMain.handle("load-gifs", async (ev, folders: string[]) => {
+  const promises = folders.map(readFolder);
+  const allFiles = (await Promise.all(promises))
+    .flat()
+    .filter((file) => file.endsWith(".gif"));
+  return allFiles;
 });
