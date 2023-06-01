@@ -5,7 +5,7 @@ export const api = {
     return ipcRenderer.invoke("start-drag", fileName);
   },
   loadFolders() {
-    return ipcRenderer.invoke("load-folders");
+    return ipcRenderer.invoke("load-folders") as Promise<string[]>;
   },
   saveFolders(folders: string[]) {
     return ipcRenderer.invoke("save-folders", folders);

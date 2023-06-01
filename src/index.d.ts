@@ -1,1 +1,1 @@
-declare const api: typeof import("../electron/preload").api;
+declare const api: typeof import("electron/preload").api;

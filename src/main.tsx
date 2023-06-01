@@ -1,12 +1,15 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
+import { render } from "solid-js/web";
 import "styles/index.css";
 import App from "./App";
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+const root = document.getElementById("root")!;
+
+render(() => <App />, root);
+
+// ReactDOM.createRoot(root).render(
+//   <React.StrictMode>
+//     <App />
+//   </React.StrictMode>
+// );
 
 postMessage({ payload: "removeLoading" }, "*");

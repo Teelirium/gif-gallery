@@ -4,6 +4,7 @@ import path from "path";
 import { defineConfig } from "vite";
 import electron from "vite-plugin-electron";
 import renderer from "vite-plugin-electron-renderer";
+import solid from "vite-plugin-solid";
 import tsConfigPaths from "vite-tsconfig-paths";
 import pkg from "./package.json";
 
@@ -25,7 +26,8 @@ export default defineConfig(({ command }) => {
       },
     },
     plugins: [
-      react(),
+      // react(),
+      solid(),
       tsConfigPaths(),
       electron([
         {
@@ -89,7 +91,7 @@ export default defineConfig(({ command }) => {
   };
 });
 
-function debounce<Fn extends (...args: any[]) => void>(fn: Fn, delay = 299) {
+function debounce<T, Fn extends (...args: T[]) => void>(fn: Fn, delay = 299) {
   let t: NodeJS.Timeout;
   return ((...args) => {
     clearTimeout(t);

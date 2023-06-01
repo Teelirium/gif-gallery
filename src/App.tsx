@@ -1,19 +1,17 @@
-import { QueryClient, QueryClientProvider } from "react-query";
-import { MemoryRouter, Route, Routes } from "react-router";
+import { Route, Router, Routes, memoryIntegration } from "@solidjs/router";
+import { QueryClient, QueryClientProvider } from "@tanstack/solid-query";
 import Main from "./components/Main";
 
 const queryClient = new QueryClient();
 
-const App: React.FC = () => {
+export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter>
+      <Router source={memoryIntegration()}>
         <Routes>
-          <Route path="/" element={<Main />} />
+          <Route path="/" component={Main} />
         </Routes>
-      </MemoryRouter>
+      </Router>
     </QueryClientProvider>
   );
-};
-
-export default App;
+}
