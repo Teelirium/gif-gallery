@@ -1,16 +1,8 @@
 import { basename } from "@/utils/basename";
-import { wait } from "@/utils/wait";
-import { useNavigate, useParams, useSearchParams } from "@solidjs/router";
+import { useNavigate, useSearchParams } from "@solidjs/router";
 import { createQuery, useQueryClient } from "@tanstack/solid-query";
 import classNames from "classnames";
-import {
-  For,
-  Show,
-  Suspense,
-  createEffect,
-  createMemo,
-  createSignal,
-} from "solid-js";
+import { For, Show, createEffect, createMemo, createSignal } from "solid-js";
 import { z } from "zod";
 
 const tabSchema = z
@@ -126,7 +118,7 @@ export default function Main() {
         placeholder="Search..."
         class="w-full rounded-md bg-slate-100 p-1.5 text-slate-800 outline-none outline-2 outline-offset-0 focus:outline-teal-400"
         value={search()}
-        onChange={(ev) => setSearch(ev.target.value)}
+        onInput={(ev) => setSearch(ev.target.value)}
         onContextMenu={() => setSearch("")}
       />
       <main class="grid w-full flex-auto grid-cols-3 gap-6 overflow-x-hidden overflow-y-scroll pr-2">
