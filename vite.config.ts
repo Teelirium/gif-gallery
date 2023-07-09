@@ -1,4 +1,3 @@
-import react from "@vitejs/plugin-react";
 import { rmSync } from "fs";
 import path from "path";
 import { defineConfig } from "vite";
@@ -32,7 +31,7 @@ export default defineConfig(({ command }) => {
       electron([
         {
           // Main-Process entry file of the Electron App.
-          entry: "electron/main/index.ts",
+          entry: "electron/main.ts",
           onstart(options) {
             if (process.env.VSCODE_DEBUG) {
               console.log(
@@ -56,7 +55,7 @@ export default defineConfig(({ command }) => {
           },
         },
         {
-          entry: "electron/preload/index.ts",
+          entry: "electron/preload.ts",
           onstart(options) {
             // Notify the Renderer-Process to reload the page when the Preload-Scripts build is complete,
             // instead of restarting the entire Electron App.

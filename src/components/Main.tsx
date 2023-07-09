@@ -1,5 +1,7 @@
+import { MainLayout } from "@/layouts/Main";
+import { MainFooter } from "@/layouts/Main/Footer";
 import { basename } from "@/utils/basename";
-import { useNavigate, useSearchParams } from "@solidjs/router";
+import { Link, useNavigate, useSearchParams } from "@solidjs/router";
 import { createQuery, useQueryClient } from "@tanstack/solid-query";
 import classNames from "classnames";
 import { For, Show, createEffect, createMemo, createSignal } from "solid-js";
@@ -55,13 +57,7 @@ export default function Main() {
   });
 
   return (
-    <div class="flex h-screen w-screen flex-col gap-2 bg-slate-700 p-4 text-slate-100">
-      <button
-        class="absolute bottom-5 right-5 rounded-md border border-teal-200 p-2 opacity-50"
-        disabled
-      >
-        + Add Link
-      </button>
+    <MainLayout>
       <header class="grid flex-none grid-cols-5 gap-2 py-2">
         <button
           class={classNames("rounded-md text-center", "transition-colors", {
@@ -122,7 +118,7 @@ export default function Main() {
         onContextMenu={() => setSearch("")}
       />
       <main class="grid w-full flex-auto grid-cols-3 gap-6 overflow-x-hidden overflow-y-scroll pr-2">
-        {gifsQ.isError && "No images found :("}
+        <Show when={gifsQ.isError}>No images found :(</Show>
         <Show when={gifsQ.isLoading}>Holup, 1 sec...</Show>
         <For each={gifsQ.data}>
           {(filePath) => (
@@ -155,14 +151,19 @@ export default function Main() {
                 <span class="absolute -bottom-6 max-w-full truncate text-teal-300 opacity-0 transition-opacity group-hover:opacity-100">
                   {basename(filePath)}
                 </span>
+                <Link
+                  href={`/edit/${encodeURI(filePath)}`}
+                  class="absolute top-1 right-2 border border-red-700 text-red-600"
+                  onClick={(ev) => ev.stopPropagation()}
+                >
+                  edit
+                </Link>
               </div>
             </Show>
           )}
         </For>
       </main>
-      <footer class="bottom-0 flex-none">
-        Copyright &copy; Teelirium LOLOLOL
-      </footer>
-    </div>
+      <MainFooter />
+    </MainLayout>
   );
 }

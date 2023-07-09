@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from "electron";
 
-export const api = {
+export const ipcApi = {
+  isWindows: process.platform === "win32",
   startDrag(fileName: string) {
     return ipcRenderer.invoke("start-drag", fileName);
   },
@@ -20,7 +21,7 @@ export const api = {
   },
 };
 
-contextBridge.exposeInMainWorld("api", api);
+contextBridge.exposeInMainWorld("api", ipcApi);
 
 function domReady(
   condition: DocumentReadyState[] = ["complete", "interactive"]

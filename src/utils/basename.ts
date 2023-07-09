@@ -1,7 +1,11 @@
-export function basename(path: string) {
-  if (path.includes("\\")) {
-    const tokens = path.split("\\");
-    return tokens[tokens.length - 1];
-  }
-  return "";
+/**
+ * Probably equivalent to node's path.basename
+ * @param filepath
+ * @returns string
+ */
+export function basename(filepath: string): string {
+  const isWindows = api.isWindows;
+  const separator = isWindows ? "\\" : "/";
+  const tokens = filepath.split(separator);
+  return tokens[tokens.length - 1];
 }

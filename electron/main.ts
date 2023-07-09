@@ -32,7 +32,9 @@ import * as fs from "fs";
 import { release } from "os";
 import * as path from "path";
 import { join } from "path";
-import { z } from "zod";
+import { Schema, z } from "zod";
+import { zodToJsonSchema } from "zod-to-json-schema";
+import { AppStore, appStoreSchema } from "./store";
 
 dotenv.config();
 
@@ -51,10 +53,14 @@ let win: BrowserWindow | null = null;
 let tray: Tray | null = null;
 const appIconPath = join(process.env.PUBLIC, "icon.png");
 const dragIconPath = join(process.env.PUBLIC, "dnd.png");
-const preload = join(__dirname, "../preload/index.js");
+const preload = join(__dirname, "../preload/preload.js");
 const url = process.env.VITE_DEV_SERVER_URL;
 const indexHtml = join(process.env.DIST, "index.html");
-const store = new ElectronStore();
+
+const storeJsonSchema = zodToJsonSchema(appStoreSchema, "store");
+const { properties } = storeJsonSchema.definitions.store as any;
+const store = new ElectronStore<AppStore>({ schema: properties });
+console.log("Loaded store schema:", properties);
 
 async function createWindow() {
   win = new BrowserWindow({
