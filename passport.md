@@ -31,5 +31,6 @@ Gif Gallery - приложение для удобного просмотра и
 ### MVP
 Для MVP планируется реализовать все функции 1-6
 ## Интеллект-карта
+[Gif Gallery Mind Map](https://www.figma.com/file/6BXGMRsITIxxFbPQKJlr1r/Gif-Gallery-Mind-Map?type=whiteboard&node-id=0%3A1&t=JBpyHPjxCBZDL9fQ-1)
 
 ## Кликабельный прототип
