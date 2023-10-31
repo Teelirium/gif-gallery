@@ -33,4 +33,4 @@ Gif Gallery - приложение для удобного просмотра и
 ## Интеллект-карта
 [Gif Gallery Mind Map](https://www.figma.com/file/6BXGMRsITIxxFbPQKJlr1r/Gif-Gallery-Mind-Map?type=whiteboard&node-id=0%3A1&t=JBpyHPjxCBZDL9fQ-1)
 ## Кликабельный прототип
-[Gif Gallery UI Prototype](https://www.figma.com/proto/SmpYlvoYV0iXqiNPj5vdsx/Gif-Gallery-UI?type=design&node-id=28-94&t=PT0qtqDzNpnJGTP2-0&scaling=min-zoom&page-id=0%3A1&starting-point-node-id=8%3A7)
+[Gif Gallery UI Prototype](https://www.figma.com/proto/SmpYlvoYV0iXqiNPj5vdsx/Gif-Gallery-UI?type=design&node-id=8-7&t=PT0qtqDzNpnJGTP2-0&scaling=min-zoom&page-id=0%3A1&starting-point-node-id=8%3A7)
