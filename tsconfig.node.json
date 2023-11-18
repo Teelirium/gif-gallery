@@ -6,6 +6,6 @@
     "noUnusedParameters": false,
     "noImplicitReturns": false,
     "composite": true,
-    "types": ["electron-vite/node"],
+    "types": ["electron-vite/node"]
   }
 }

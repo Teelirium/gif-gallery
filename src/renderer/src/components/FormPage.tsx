@@ -1,8 +1,13 @@
-import { createForm, getValues, setValues, zodForm } from '@modular-forms/solid';
-import { Gif, gifSchema } from '@renderer/modules/Gif/model';
-import { Link, useRouteData } from '@solidjs/router';
-import { createEffect, onMount } from 'solid-js';
-import { MainLayout } from './MainLayout';
+import {
+  createForm,
+  getValues,
+  setValues,
+  zodForm,
+} from "@modular-forms/solid";
+import { Gif, gifSchema } from "@renderer/modules/Gif/model";
+import { Link, useRouteData } from "@solidjs/router";
+import { createEffect, onMount } from "solid-js";
+import { MainLayout } from "./MainLayout";
 
 export function FormPage() {
   const [gifForm, GifForm] = createForm<Gif>({ validate: zodForm(gifSchema) });
@@ -26,7 +31,7 @@ export function FormPage() {
         <GifForm.Form
           class="flex flex-col text-slate-100"
           onSubmit={(d) => {
-            console.log('Submitted', d);
+            console.log("Submitted", d);
           }}
         >
           <GifForm.Field name="path">
