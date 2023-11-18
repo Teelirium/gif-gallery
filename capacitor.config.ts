@@ -1,12 +1,12 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.teel.GifGallery',
+  appId: 'com.teelirium.GifGallery',
   appName: 'Gif Gallery',
-  webDir: 'dist',
+  webDir: './out/renderer',
   server: {
-    androidScheme: 'https'
-  }
+    androidScheme: 'https',
+  },
 };
 
 export default config;

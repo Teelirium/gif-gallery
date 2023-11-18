@@ -1,64 +1,57 @@
 {
   "name": "gif-gallery",
   "productName": "Gif Gallery",
-  "version": "0.0.3alpha",
-  "main": "dist-electron/main/main.js",
-  "private": true,
+  "version": "0.0.4alpha",
   "description": "",
+  "main": "./out/main/index.js",
   "author": "teelirium",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "electron:build": "npm run build && electron-builder -c electron-builder.json5",
-    "ionic:build": "pnpm run build",
-    "ionic:serve": "pnpm run dev"
-  },
-  "engines": {
-    "node": "^14.18.0 || >=16.0.0"
+    "format": "prettier --write .",
+    "lint": "eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix",
+    "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
+    "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
+    "typecheck": "npm run typecheck:node && npm run typecheck:web",
+    "start": "electron-vite preview",
+    "dev": "electron-vite dev",
+    "build": "npm run typecheck && electron-vite build",
+    "postinstall": "electron-builder install-app-deps",
+    "build:win": "npm run build && electron-builder --win --config",
+    "build:mac": "npm run build && electron-builder --mac --config",
+    "build:linux": "npm run build && electron-builder --linux --config"
   },
   "dependencies": {
     "@capacitor/android": "^5.5.1",
     "@capacitor/core": "^5.5.1",
-    "@modular-forms/solid": "^0.18.1",
-    "@solidjs/router": "^0.8.4",
+    "@electron-toolkit/preload": "^2.0.0",
+    "@electron-toolkit/utils": "^2.0.1",
+    "@modular-forms/solid": "^0.20.0",
+    "@solidjs/router": "^0.9.1",
     "@tanstack/solid-query": "^4.36.1",
     "classnames": "^2.3.2",
-    "dotenv": "^16.3.1",
-    "electron-store": "^8.1.0",
     "electron-traywindow-positioner": "^1.2.0",
+    "electron-updater": "^6.1.4",
     "solid-js": "^1.8.5",
-    "zod": "^3.22.4",
-    "zod-to-json-schema": "^3.21.4"
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@capacitor/cli": "^5.5.1",
-    "@typescript-eslint/eslint-plugin": "^5.62.0",
-    "@typescript-eslint/parser": "^5.62.0",
+    "@electron-toolkit/eslint-config-prettier": "^1.0.1",
+    "@electron-toolkit/eslint-config-ts": "^1.0.0",
+    "@electron-toolkit/tsconfig": "^1.0.1",
+    "@types/node": "^18.18.9",
+    "@typescript-eslint/eslint-plugin": "^6.11.0",
+    "@typescript-eslint/parser": "^6.11.0",
     "autoprefixer": "^10.4.16",
-    "electron": "^24.8.8",
-    "electron-builder": "^23.6.0",
+    "electron": "^25.9.5",
+    "electron-builder": "^24.6.4",
+    "electron-vite": "^1.0.29",
     "eslint": "^8.53.0",
-    "eslint-config-prettier": "^8.10.0",
-    "eslint-config-standard-with-typescript": "^34.0.1",
-    "eslint-plugin-import": "^2.29.0",
-    "eslint-plugin-n": "^15.7.0",
-    "eslint-plugin-prettier": "^4.2.1",
-    "eslint-plugin-promise": "^6.1.1",
+    "eslint-plugin-solid": "^0.12.1",
     "postcss": "^8.4.31",
-    "prettier": "^2.8.8",
-    "prettier-plugin-tailwindcss": "^0.2.8",
-    "sass": "^1.69.5",
+    "prettier": "^3.1.0",
     "tailwindcss": "^3.3.5",
     "typescript": "^5.2.2",
     "vite": "^4.5.0",
-    "vite-plugin-electron": "^0.11.2",
-    "vite-plugin-electron-renderer": "^0.14.5",
-    "vite-plugin-solid": "^2.7.2",
-    "vite-tsconfig-paths": "^4.2.1"
-  },
-  "debug": {
-    "env": {
-      "VITE_DEV_SERVER_URL": "http://127.0.0.1:7777"
-    }
+    "vite-plugin-solid": "^2.7.2"
   }
 }
