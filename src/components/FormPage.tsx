@@ -1,31 +1,48 @@
 import { MainLayout } from "@/layouts/Main";
 import { Gif, gifSchema } from "@/modules/gif/model";
-import { createForm, zodForm } from "@modular-forms/solid";
+import {
+  createForm,
+  getValues,
+  setValues,
+  zodForm,
+} from "@modular-forms/solid";
 import { Link, useRouteData } from "@solidjs/router";
+import { createEffect, onMount } from "solid-js";
 
 export function FormPage() {
   const [gifForm, GifForm] = createForm<Gif>({ validate: zodForm(gifSchema) });
-  const gifUrl = useRouteData<string | undefined>();
+  const gifPath = useRouteData<string | undefined>();
+
+  onMount(() => {
+    if (gifPath) {
+      setValues(gifForm, { path: gifPath });
+    }
+  });
+
+  createEffect(() => {
+    console.log(getValues(gifForm));
+  });
 
   return (
     <MainLayout>
       <main class="flex w-full flex-col">
         <Link href="/">&lt;= Go Back</Link>
-        Editing {gifUrl}
+        Editing {gifPath}
         <GifForm.Form
           class="flex flex-col text-slate-100"
           onSubmit={(d) => {
-            console.log(d);
+            console.log("Submitted", d);
           }}
         >
           <GifForm.Field name="path">
             {(field, props) => (
               <>
                 <input
+                  {...props}
                   placeholder="Path to gif file"
                   type="text"
+                  value={field.value}
                   class="border border-slate-400 bg-slate-900"
-                  {...props}
                 />
                 {field.error}
               </>
@@ -35,17 +52,18 @@ export function FormPage() {
             {(field, props) => (
               <>
                 <input
+                  {...props}
                   placeholder="URL for caching"
                   type="text"
+                  value={field.value}
                   class="border border-slate-400 bg-slate-900"
-                  {...props}
                 />
                 {field.error}
               </>
             )}
           </GifForm.Field>
           <button class="text-slate-100" type="submit">
-            hit it
+            Save (doesn't work)
           </button>
         </GifForm.Form>
       </main>

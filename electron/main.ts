@@ -1,5 +1,4 @@
 // The built directory structure
-//
 // ├─┬ dist-electron
 // │ ├─┬ main
 // │ │ └── index.js    > Electron-Main
@@ -7,7 +6,6 @@
 // │   └── index.js    > Preload-Scripts
 // ├─┬ dist
 // │ └── index.html    > Electron-Renderer
-//
 process.env.DIST_ELECTRON = join(__dirname, "../..");
 process.env.DIST = join(process.env.DIST_ELECTRON, "./dist");
 process.env.PUBLIC = app.isPackaged
@@ -52,7 +50,7 @@ if (!app.requestSingleInstanceLock()) {
 let win: BrowserWindow | null = null;
 let tray: Tray | null = null;
 const appIconPath = join(process.env.PUBLIC, "icon.png");
-const dragIconPath = join(process.env.PUBLIC, "dnd.png");
+const dndIcon = join(process.env.PUBLIC, "dnd.png");
 const preload = join(__dirname, "../preload/preload.js");
 const url = process.env.VITE_DEV_SERVER_URL;
 const indexHtml = join(process.env.DIST, "index.html");
@@ -62,9 +60,9 @@ const { properties } = storeJsonSchema.definitions.store as any;
 const store = new ElectronStore<AppStore>({ schema: properties });
 console.log("Loaded store schema:", properties);
 
-async function createWindow() {
+function createWindow() {
   win = new BrowserWindow({
-    title: "GifGallery",
+    title: "Gif Gallery",
     show: false,
     autoHideMenuBar: true,
     titleBarStyle: "hidden",
@@ -74,7 +72,6 @@ async function createWindow() {
       preload,
       webSecurity: false,
       allowRunningInsecureContent: false,
-      nodeIntegration: false,
       contextIsolation: true,
     },
   });
@@ -98,19 +95,15 @@ async function createWindow() {
   });
 }
 
-function showWindow() {
-  positioner.position(win, tray.getBounds());
-  win.show();
-}
-
 function toggleWindow() {
   if (win.isVisible()) {
     return win.hide();
   }
-  return showWindow();
+  positioner.position(win, tray.getBounds());
+  win.show();
 }
 
-async function createTray() {
+function createTray() {
   tray = new Tray(appIconPath);
   tray.setContextMenu(
     Menu.buildFromTemplate([
@@ -180,14 +173,15 @@ ipcMain.handle("open-win", (event, arg) => {
   }
 });
 
-ipcMain.handle("start-drag", async (ev, fileName) => {
+ipcMain.handle("start-drag", async (ev, fileName: string) => {
   ev.sender.startDrag({
     file: fileName,
-    icon: dragIconPath,
+    icon: dndIcon,
   });
 });
 
 const foldersSchema = z.string().array().default([]);
+
 ipcMain.handle("load-folders", async (ev) => {
   const folders = store.get("folders");
   return foldersSchema.parse(folders);

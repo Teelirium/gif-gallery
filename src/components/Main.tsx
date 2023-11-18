@@ -1,5 +1,4 @@
 import { MainLayout } from "@/layouts/Main";
-import { MainFooter } from "@/layouts/Main/Footer";
 import { basename } from "@/utils/basename";
 import { Link, useNavigate, useSearchParams } from "@solidjs/router";
 import { createQuery, useQueryClient } from "@tanstack/solid-query";
@@ -163,7 +162,12 @@ export default function Main() {
           )}
         </For>
       </main>
-      <MainFooter />
+      <footer class="bottom-0 flex flex-none items-center justify-between">
+        <Link class="rounded-md border border-teal-300 p-1 px-2" href="/add">
+          + Add Link
+        </Link>
+        <span>Copyright &copy; Teelirium LOLOLOL</span>
+      </footer>
     </MainLayout>
   );
 }

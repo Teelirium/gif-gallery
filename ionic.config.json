@@ -1,0 +1,7 @@
+{
+  "name": "gif-gallery",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "custom"
+}

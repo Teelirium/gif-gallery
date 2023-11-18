@@ -1,7 +1,5 @@
 /**
  * Probably equivalent to node's path.basename
- * @param filepath
- * @returns string
  */
 export function basename(filepath: string): string {
   const isWindows = api.isWindows;
