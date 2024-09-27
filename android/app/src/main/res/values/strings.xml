@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Gif Gallery</string>
+    <string name="title_activity_main">Gif Gallery</string>
+    <string name="package_name">com.teel.GifGallery</string>
+    <string name="custom_url_scheme">com.teel.GifGallery</string>
+</resources>
